@@ -7,7 +7,7 @@
 # https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network
 #
 resource "azurerm_virtual_network" "this" {
-  name                = module.azure_resource_prefixes.virtual_network_prefix
+  name                = module.azure_resource_names.virtual_network_name
   location            = var.azure_resource_attributes.location
   resource_group_name = var.resource_group_name
 
@@ -116,7 +116,7 @@ resource "azurerm_subnet_route_table_association" "this" {
 resource "azurerm_subnet_service_endpoint_storage_policy" "this" {
   for_each = { for index, subnet in var.subnets : subnet.name => subnet if subnet.service_endpoint_policy_definitions != null }
 
-  name                = "${module.azure_resource_prefixes.service_endpoint_policy_prefix}-${each.key}"
+  name                = "${module.azure_resource_names.service_endpoint_policy_name}-${each.key}"
   resource_group_name = var.resource_group_name
   location            = var.azure_resource_attributes.location
 
