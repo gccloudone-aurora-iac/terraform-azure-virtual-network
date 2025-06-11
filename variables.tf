@@ -108,7 +108,7 @@ variable "subnets" {
     })))
 
     service_delegation_name                       = optional(string) # The name of service to delegate to
-    private_endpoint_network_policies_enabled     = optional(bool, true)
+    private_endpoint_network_policies_enabled     = optional(string, "Enabled")
     private_link_service_network_policies_enabled = optional(bool, true)
   }))
 
