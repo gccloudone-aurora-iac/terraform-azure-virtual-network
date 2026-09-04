@@ -66,7 +66,8 @@ resource "azurerm_subnet" "this" {
   private_endpoint_network_policies             = each.value.private_endpoint_network_policies_enabled
   private_link_service_network_policies_enabled = each.value.private_link_service_network_policies_enabled
   service_endpoints                             = each.value.service_endpoints
-  service_endpoint_policy_ids                   = try([azurerm_subnet_service_endpoint_storage_policy.this[each.key].id], null)
+  service_endpoint_policy_ids                   = each.value.service_endpoint_policy_definitions != null ? 
+  [azurerm_subnet_service_endpoint_storage_policy.this[each.key].id] : null
 
   dynamic "delegation" {
     for_each = each.value.service_delegation_name != null ? ["service_delegation"] : []
