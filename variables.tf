@@ -59,11 +59,10 @@ variable "vnet_peers" {
   default     = []
 
   validation {
-    condition = alltrue(flatten([
-      for resource_id in var.vnet_peers : [
-        can(regex("^/subscriptions/(.+)/resourceGroups/(.+)/providers/Microsoft.Network/virtualNetworks/(.+)", resource_id))
-      ]
-    ]))
+    condition = alltrue([
+      for resource_id in var.vnet_peers :
+      can(regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/virtualNetworks/[^/]+$", resource_id))
+    ])
 
     error_message = "Each element within var.vnet_peers must be a valid Azure Virtual Network resource ID."
   }
@@ -81,8 +80,10 @@ variable "ddos_protection_plan_id" {
   default     = null
 
   validation {
-    condition     = var.ddos_protection_plan_id != ""
-    error_message = "The variable ddos_protection_plan_id cannot be set to an empty string"
+    condition = var.ddos_protection_plan_id == null ? true : can(
+      regex("(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\\.Network/ddosProtectionPlans/[^/]+$", var.ddos_protection_plan_id)
+    )
+    error_message = "The variable ddos_protection_plan_id must be null or a valid Azure DDoS Protection Plan resource ID."
   }
 }
 
@@ -133,17 +134,14 @@ variable "subnets" {
   }
 
   validation {
-    condition = length(distinct(flatten([
-      for subnet in var.subnets : [
-        for policy in coalesce(subnet.service_endpoint_policy_definitions, []) : policy.service
-      ]
-      ]))) == length(flatten([
-      for subnet in var.subnets : [
-        for policy in coalesce(subnet.service_endpoint_policy_definitions, []) : policy.service
-      ]
-    ]))
+    condition = alltrue([
+      for subnet in var.subnets :
+      subnet.service_endpoint_policy_definitions == null ? true : length(distinct([
+        for policy in subnet.service_endpoint_policy_definitions : lower(policy.service)
+      ])) == length(subnet.service_endpoint_policy_definitions)
+    ])
 
-    error_message = "A service endpoint policy can only have one definition per service (Microsoft.Strorage & Global)."
+    error_message = "A service endpoint policy can only have one definition per service (Microsoft.Storage and Global)."
   }
 }
 
